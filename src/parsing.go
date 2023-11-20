@@ -2,6 +2,7 @@ package src
 
 import (
 	"errors"
+	"fmt"
 )
 
 func Parse(tokens []token) (expr, error) {
@@ -12,13 +13,13 @@ func Parse(tokens []token) (expr, error) {
 
 type expr interface {}
 
-type unaryExpr struct {
+type negandExpr struct {
 	operator string
 	rightExpr expr
 }
 
-func newUnary(op string, expression expr) unaryExpr {
-	return unaryExpr{op, expression}
+func newNegand(op string, expression expr) negandExpr {
+	return negandExpr{op, expression}
 }
 
 type binaryExpr struct {
@@ -43,9 +44,9 @@ type literalExpr int
 
 // expression -> term 
 // term -> factor (("+" | "-") factor)*
-// factor -> unary (("/" | "*") unary)*
-// unary -> "-" unary | primary
-// primary -> "(" expressiion ")" | number
+// factor -> negand (("/" | "*") negand)*
+// negand -> "-" negand | primary
+// primary -> "(" expression ")" | number
 
 type parser struct {
 	tokens []token
@@ -57,15 +58,15 @@ func (p *parser) current() token {
 }
 
 func (p *parser) advance() {
-	if p.currentIndex < len(p.tokens) {
+	if p.currentIndex < len(p.tokens) - 1 {
 		p.currentIndex++
 	}
 }
 
 func (p *parser) match(tokenIds ... int) bool {
-	if p.currentIndex >= len(p.tokens) {
-		return false
-	}
+	// if p.currentIndex >= len(p.tokens) {
+	// 	return false
+	// }
 	for _, t := range tokenIds {
 		if p.current().TokenId == t {
 			return true
@@ -96,16 +97,16 @@ func (p *parser)term() (expr, error) {
 }
 
 func (p *parser)factor() (expr, error) {
-	// factor -> unary (("/" | "*") unary)*
-	expression, err := p.unary()
+	// factor -> negand (("/" | "*") negand)*
+	expression, err := p.negand()
 	if err != nil {
 		return nil, err
 	}
 	for p.match(SLASH, STAR) {
 		var operator = p.current().Lexeme
 		p.advance()
-		// rightExpr := p.unary()
-		rightExpr, err := p.unary()
+		// rightExpr := p.negand()
+		rightExpr, err := p.negand()
 		if err != nil {
 			return nil, err
 		}
@@ -114,17 +115,16 @@ func (p *parser)factor() (expr, error) {
 	return expression, nil
 }
 
-func (p *parser)unary() (expr, error) {
-	// unary -> "-" unary | primary
-	for p.match(MINUS) {
+func (p *parser)negand() (expr, error) {
+	// negand -> "-" negand | primary
+	if p.match(MINUS) {
 		var operator = p.current().Lexeme
 		p.advance()
-		// rightExpr := p.unary()
-		rightExpr, err := p.unary()
+		rightExpr, err := p.negand()
 		if err != nil {
 			return nil, err
 		}
-		return newUnary(operator, rightExpr), nil
+		return newNegand(operator, rightExpr), nil
 	}
 	return p.primary()
 }
@@ -137,13 +137,14 @@ func (p *parser)primary() (expr, error) {
 			return nil, err
 		}
 		if !p.match(RIGHT_PAREN) {
-			return nil, errors.New("Expected Token ')'")
+			return nil, errors.New("Expected token `)`")
 		}
+		p.advance()
 		return newgroupExpr(expression), nil
 	} else if p.match(NUM_LITERAL) {
 		val := p.current().Value.(int)
 		p.advance()
 		return literalExpr(val), nil
 	}
-	return nil, errors.New("Unexpected Token")
+	return nil, fmt.Errorf("Unexpected token: `%s`", p.current().Lexeme)
 }

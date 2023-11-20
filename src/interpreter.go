@@ -14,9 +14,9 @@ func eval(expresison expr) int {
 	if isBin {
 		return evalBinary(expresison.(binaryExpr))
 	} 
-	_, isUnary := expresison.(unaryExpr)
-	if isUnary {
-		return evalUnary(expresison.(unaryExpr))
+	_, isnegand := expresison.(negandExpr)
+	if isnegand {
+		return evalNegand(expresison.(negandExpr))
 	}
 	_, isGroup := expresison.(groupExpr)
 	if isGroup {
@@ -60,7 +60,7 @@ func evalBinary(expression binaryExpr) int {
 	return 0
 }
 
-func evalUnary(expression unaryExpr) int {
+func evalNegand(expression negandExpr) int {
 	right := eval(expression.rightExpr)
 	return -right
 }

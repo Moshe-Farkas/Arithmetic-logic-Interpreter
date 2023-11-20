@@ -13,13 +13,13 @@ type scanningSession struct {
 	input string
 }
 
-func compileErrMsg(unexpectedTokens []string) string {
+func compileErrMsg(unknownTokens []string) string {
 	var sb = strings.Builder {}
-	if len(unexpectedTokens) == 1 {
-		sb.WriteString(fmt.Sprintf("Error: unexpected token: \n\t`%s`\n", unexpectedTokens[0]))
+	if len(unknownTokens) == 1 {
+		sb.WriteString(fmt.Sprintf("Error: Unknown token: \n\t`%s`\n", unknownTokens[0]))
 	} else {
-		sb.WriteString("Error: Unexpected tokens: \n")
-		for _, uexpTok := range unexpectedTokens {
+		sb.WriteString("Error: Unknown tokens: \n")
+		for _, uexpTok := range unknownTokens {
 			sb.WriteString(fmt.Sprintf("\t`%s`,\n", uexpTok))
 		}
 	}
@@ -28,7 +28,7 @@ func compileErrMsg(unexpectedTokens []string) string {
 
 func Tokenize(input string) ([]token, error) {
 	ss := scanningSession {0, []token{}, input}
-	var unexpectedTokens = []string {}
+	var unknownTokens = []string {}
 	for !ss.atEnd() {
 		c := ss.current()
 		var err error
@@ -47,15 +47,15 @@ func Tokenize(input string) ([]token, error) {
 		} else if isDigit(c) {
 			err = ss.consumeDigit()
 			if err != nil {
-				unexpectedTokens = append(unexpectedTokens, string(err.Error()))
+				unknownTokens = append(unknownTokens, string(err.Error()))
 			}
 			continue
 		} else if c == " " { 
 			ss.consumeWhiteSpace()
 			continue
 		} else {
-			unexpectedTokens = append(unexpectedTokens, c)
-			// errMsg := fmt.Sprintf("Error: unexpected token: %s\n", c)
+			unknownTokens = append(unknownTokens, c)
+			// errMsg := fmt.Sprintf("Error: Unknown token: %s\n", c)
 			// return nil, errors.New(errMsg)
 		}
 		// if err != nil {
@@ -63,8 +63,8 @@ func Tokenize(input string) ([]token, error) {
 		// }
 		ss.currentIndex++
 	}
-	if len(unexpectedTokens) > 0 {
-		return nil, errors.New(compileErrMsg(unexpectedTokens))
+	if len(unknownTokens) > 0 {
+		return nil, errors.New(compileErrMsg(unknownTokens))
 	}
 	return ss.tokens, nil
 }
