@@ -29,18 +29,16 @@ func runPrompt() {
 	}
 }
 
-// types for tree:
-	// unary
-	// binary
-	// grouping
-	// number
-
 func runLine(line string) {
 	tokens, err := src.Tokenize(line)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
-	for _, t := range tokens {
-		fmt.Println("lexeme:", t.Lexeme, "val:", t.Value)
+	st, err := src.Parse(tokens)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+	fmt.Println(src.Interpret(st))
 }
