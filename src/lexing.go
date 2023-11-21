@@ -66,6 +66,9 @@ func Tokenize(input string) ([]token, error) {
 	if len(unknownTokens) > 0 {
 		return nil, errors.New(compileErrMsg(unknownTokens))
 	}
+	if len(ss.tokens) == 0 {
+		return nil, errors.New("")
+	}
 	return ss.tokens, nil
 }
 

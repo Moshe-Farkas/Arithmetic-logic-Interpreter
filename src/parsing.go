@@ -14,12 +14,11 @@ func Parse(tokens []token) (expr, error) {
 type expr interface {}
 
 type negandExpr struct {
-	operator string
-	rightExpr expr
+	expression expr
 }
 
-func newNegand(op string, expression expr) negandExpr {
-	return negandExpr{op, expression}
+func newNegand(expression expr) negandExpr {
+	return negandExpr{expression}
 }
 
 type binaryExpr struct {
@@ -53,20 +52,22 @@ type parser struct {
 	currentIndex int 
 }
 
+func (p *parser) atEnd() bool {
+	return p.currentIndex == len(p.tokens)
+}
+
 func (p *parser) current() token {
 	return p.tokens[p.currentIndex]
 }
 
 func (p *parser) advance() {
-	if p.currentIndex < len(p.tokens) - 1 {
-		p.currentIndex++
-	}
+	p.currentIndex++
 }
 
 func (p *parser) match(tokenIds ... int) bool {
-	// if p.currentIndex >= len(p.tokens) {
-	// 	return false
-	// }
+	if p.atEnd() {
+		return false
+	}
 	for _, t := range tokenIds {
 		if p.current().TokenId == t {
 			return true
@@ -79,7 +80,7 @@ func (p *parser) expression() (expr, error) {
 	return p.term()
 }
 
-func (p *parser)term() (expr, error) {
+func (p *parser) term() (expr, error) {
 	expression, err := p.factor()
 	if err != nil {
 		return nil, err
@@ -96,7 +97,7 @@ func (p *parser)term() (expr, error) {
 	return expression, nil
 }
 
-func (p *parser)factor() (expr, error) {
+func (p *parser) factor() (expr, error) {
 	// factor -> negand (("/" | "*") negand)*
 	expression, err := p.negand()
 	if err != nil {
@@ -115,21 +116,22 @@ func (p *parser)factor() (expr, error) {
 	return expression, nil
 }
 
-func (p *parser)negand() (expr, error) {
+func (p *parser) negand() (expr, error) {
 	// negand -> "-" negand | primary
 	if p.match(MINUS) {
-		var operator = p.current().Lexeme
+		// always true if only inputed `-`
+		// because advance
 		p.advance()
 		rightExpr, err := p.negand()
 		if err != nil {
 			return nil, err
 		}
-		return newNegand(operator, rightExpr), nil
+		return newNegand(rightExpr), nil
 	}
 	return p.primary()
 }
 
-func (p *parser)primary() (expr, error) {
+func (p *parser) primary() (expr, error) {
 	if p.match(LEFT_PAREN) {
 		p.advance()
 		expression, err := p.expression()
@@ -145,6 +147,9 @@ func (p *parser)primary() (expr, error) {
 		val := p.current().Value.(int)
 		p.advance()
 		return literalExpr(val), nil
+	}
+	if p.atEnd() {
+		return nil, errors.New("Expected number literal")
 	}
 	return nil, fmt.Errorf("Unexpected token: `%s`", p.current().Lexeme)
 }

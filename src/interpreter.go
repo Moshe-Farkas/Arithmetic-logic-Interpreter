@@ -5,11 +5,11 @@ import (
 	"os"
 )
 
-func Interpret(expression expr) int {
+func Interpret(expression expr) float64 {
 	return eval(expression)
 } 
 
-func eval(expresison expr) int {
+func eval(expresison expr) float64 {
 	_, isBin := expresison.(binaryExpr)
 	if isBin {
 		return evalBinary(expresison.(binaryExpr))
@@ -31,7 +31,7 @@ func eval(expresison expr) int {
 	return 0
 }
 
-func evalBinary(expression binaryExpr) int {
+func evalBinary(expression binaryExpr) float64 {
 	left := eval(expression.leftExpr)
 	switch expression.operator {
 	case "+":
@@ -60,16 +60,16 @@ func evalBinary(expression binaryExpr) int {
 	return 0
 }
 
-func evalNegand(expression negandExpr) int {
-	right := eval(expression.rightExpr)
-	return -right
+func evalNegand(expression negandExpr) float64 {
+	rightExp := eval(expression.expression)
+	return -rightExp
 }
 
-func evalGroup(expression groupExpr) int {
+func evalGroup(expression groupExpr) float64 {
 	return eval(expression.expression)
 }
 
-func evalLiteral(expression literalExpr) int {
-	return int(expression)
+func evalLiteral(expression literalExpr) float64 {
+	return float64(expression)
 }
 
