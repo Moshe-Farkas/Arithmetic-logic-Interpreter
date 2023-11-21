@@ -13,11 +13,6 @@ func Parse(tokens []token) (expr, error) {
 
 type expr interface{}
 
-type powerExpr struct {
-	base     expr
-	exponent expr
-}
-
 type negandExpr struct {
 	expression expr
 }
@@ -44,18 +39,8 @@ func newgroupExpr(expression expr) groupExpr {
 	return groupExpr{expression}
 }
 
-func newPowerExpr(base expr, exponent expr) powerExpr {
-	return powerExpr{base, exponent}
-}
-
 type literalExpr float64
 type BooleanExpr bool
-
-// expression -> term
-// term -> factor (("+" | "-") factor)*
-// factor -> negand (("/" | "*") negand)*
-// negand -> "-" negand | primary
-// primary -> "(" expression ")" | number
 
 type parser struct {
 	tokens       []token
@@ -134,7 +119,6 @@ func (p *parser) factor() (expr, error) {
 	for p.match(SLASH, STAR) {
 		var operator = p.current().Lexeme
 		p.advance()
-		// rightExpr := p.negand()
 		rightExpr, err := p.negand()
 		if err != nil {
 			return nil, err
@@ -147,8 +131,6 @@ func (p *parser) factor() (expr, error) {
 func (p *parser) negand() (expr, error) {
 	// negand -> "-" negand | primary
 	if p.match(MINUS) {
-		// always true if only inputed `-`
-		// because advance
 		p.advance()
 		rightExpr, err := p.negand()
 		if err != nil {
@@ -157,7 +139,6 @@ func (p *parser) negand() (expr, error) {
 		return newNegand(rightExpr), nil
 	}
 	return p.power()
-	// return p.primary()
 }
 
 func (p *parser) power() (expr, error) {
@@ -171,7 +152,7 @@ func (p *parser) power() (expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		base = newPowerExpr(base, exponent)
+		base = newbinaryExpr(base, "^", exponent)
 	}
 	return base, nil
 }

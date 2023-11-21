@@ -32,10 +32,6 @@ func eval(expresison expr) (any, error) {
 	if isBoolean {
 		return evalBoolean(expresison.(BooleanExpr))
 	}
-	_, isPower := expresison.(powerExpr)
-	if isPower {
-		return evalPower(expresison.(powerExpr))
-	}
 	return 0, errors.New("Runtime Error: Unreachable")
 }
 
@@ -65,9 +61,8 @@ func evalBinary(expression binaryExpr) (any, error) {
 		right, err := eval(expression.rightExpr)
 		if checkNumOperands(left, right) {
 			return left.(float64) * right.(float64), err
-		} else {
-			return nil, fmt.Errorf("Runtime Error: cannot multiply opperand of type `%T` to type `%T`", left, right)
-		}
+		} 
+		return nil, fmt.Errorf("Runtime Error: cannot multiply opperand of type `%T` to type `%T`", left, right)
 
 	case "==":
 		right, err := eval(expression.rightExpr)
@@ -86,6 +81,14 @@ func evalBinary(expression binaryExpr) (any, error) {
 		} else {
 			return nil, fmt.Errorf("Runtime Error: cannot divide opperand of type `%T` to type `%T`", left, right)
 		}
+
+	case "^":
+		right, err := eval(expression.rightExpr)
+		if checkNumOperands(left, right) {
+			return math.Pow(left.(float64), right.(float64)), nil
+		}
+		return nil, err
+	
 	}
 	return nil, errors.New("Runtime Error: Unsupported operator")
 }
@@ -112,17 +115,17 @@ func evalBoolean(expression BooleanExpr) (any, error) {
 	return bool(expression), nil
 }
 
-func evalPower(power powerExpr) (any, error) {
-	base, err := eval(power.base)
-	if err != nil {
-		return 0, err
-	}
-	exponent, err := eval(power.exponent)
-	if err != nil {
-		return 0, err
-	}
-	return math.Pow(base.(float64), exponent.(float64)), nil
-}
+// func evalPower(power powerExpr) (any, error) {
+// 	base, err := eval(power.base)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	exponent, err := eval(power.exponent)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	return math.Pow(base.(float64), exponent.(float64)), nil
+// }
 
 func equal(left, right expr) (bool, error) {
 	if reflect.TypeOf(left) != reflect.TypeOf(right) {
