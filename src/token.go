@@ -9,6 +9,7 @@ const (
 	LEFT_PAREN
 	NUM_LITERAL
 	POWER
+	EQUAL_EQUAL
 )
 
 type token struct {

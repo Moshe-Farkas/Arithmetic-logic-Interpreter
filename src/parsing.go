@@ -86,7 +86,25 @@ func (p *parser) match(tokenIds ... int) bool {
 }
 
 func (p *parser) expression() (expr, error) {
-	return p.term()
+	return p.equality()
+	// return p.term()
+}
+
+func (p *parser) equality() (expr, error) {
+	left, err := p.term()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(EQUAL_EQUAL) {
+		p.advance()
+		right, err := p.equality()
+		if err != nil {
+			return nil, err
+		}
+		left = newbinaryExpr(left, "==", right)
+	}
+	return left, nil
 }
 
 func (p *parser) term() (expr, error) {
@@ -165,7 +183,7 @@ func (p *parser) primary() (expr, error) {
 			return nil, err
 		}
 		if !p.match(RIGHT_PAREN) {
-			return nil, errors.New("Expected token `)`")
+			return nil, errors.New("Parse Error: Expected token `)`")
 		}
 		p.advance()
 		return newgroupExpr(expression), nil
@@ -175,7 +193,7 @@ func (p *parser) primary() (expr, error) {
 		return literalExpr(val), nil
 	}
 	if p.atEnd() {
-		return nil, errors.New("Expected number literal")
+		return nil, errors.New("Parse Error: Expected number literal")
 	}
-	return nil, fmt.Errorf("Unexpected token: `%s`", p.current().Lexeme)
+	return nil, fmt.Errorf("Parse Error: Unexpected token `%s`", p.current().Lexeme)
 }

@@ -46,6 +46,13 @@ func Tokenize(input string) ([]token, error) {
 			ss.addToken(RIGHT_PAREN, ")", nil)
 		} else if c == "^" {
 			ss.addToken(POWER, "^", nil)
+		} else if c == "=" {
+			ss.currentIndex++
+			if ss.atEnd() || ss.current() != "=" {
+				unknownTokens = append(unknownTokens, c)
+			} else {
+				ss.addToken(EQUAL_EQUAL, "==", nil)
+			}
 		} else if isDigit(c) {
 			err = ss.consumeDigit()
 			if err != nil {
@@ -64,7 +71,7 @@ func Tokenize(input string) ([]token, error) {
 		return nil, errors.New(compileErrMsg(unknownTokens))
 	}
 	if len(ss.tokens) == 0 {
-		return nil, errors.New("")
+		return nil, errors.New("idk")
 	}
 	return ss.tokens, nil
 }
