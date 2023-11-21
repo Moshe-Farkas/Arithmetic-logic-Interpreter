@@ -13,6 +13,11 @@ func Parse(tokens []token) (expr, error) {
 
 type expr interface {}
 
+type powerExpr struct {
+	base expr
+	exponent expr
+}
+
 type negandExpr struct {
 	expression expr
 }
@@ -37,6 +42,10 @@ type groupExpr struct {
 
 func newgroupExpr(expression expr) groupExpr {
 	return groupExpr{expression}
+}
+
+func newPowerExpr(base expr, exponent expr) powerExpr {
+	return powerExpr{base, exponent}
 }
 
 type literalExpr int
@@ -128,7 +137,24 @@ func (p *parser) negand() (expr, error) {
 		}
 		return newNegand(rightExpr), nil
 	}
-	return p.primary()
+	return p.power()
+	// return p.primary()
+}
+
+func (p *parser) power() (expr, error) {
+	base, err := p.primary()
+	if err != nil {
+		return nil, err
+	}
+	for p.match(POWER) {
+		p.advance()
+		exponent, err := p.power()
+		if err != nil {
+			return nil, err
+		}
+		base = newPowerExpr(base, exponent)
+	}
+	return base, nil
 }
 
 func (p *parser) primary() (expr, error) {

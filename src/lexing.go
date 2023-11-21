@@ -44,6 +44,8 @@ func Tokenize(input string) ([]token, error) {
 			ss.addToken(LEFT_PAREN, "(", nil)
 		} else if c == ")" {
 			ss.addToken(RIGHT_PAREN, ")", nil)
+		} else if c == "^" {
+			ss.addToken(POWER, "^", nil)
 		} else if isDigit(c) {
 			err = ss.consumeDigit()
 			if err != nil {

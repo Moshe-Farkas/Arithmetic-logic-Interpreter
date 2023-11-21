@@ -2,6 +2,7 @@ package src
 
 import (
 	"errors"
+	"math"
 )
 
 func Interpret(expression expr) (float64, error) {
@@ -24,6 +25,11 @@ func eval(expresison expr) (float64, error) {
 	_, isLiteral := expresison.(literalExpr)	
 	if isLiteral {
 		return evalLiteral(expresison.(literalExpr))
+	}
+
+	_, isPower := expresison.(powerExpr)
+	if isPower {
+		return evalPower(expresison.(powerExpr))
 	}
 	return 0, errors.New("Runtime Error: Unreachable")
 }
@@ -67,5 +73,17 @@ func evalGroup(expression groupExpr) (float64, error) {
 
 func evalLiteral(expression literalExpr) (float64, error) {
 	return float64(expression), nil
+}
+
+func evalPower(power powerExpr) (float64, error) {
+	base, err := eval(power.base)
+	if err != nil {
+		return 0, err
+	}
+	exponent, err := eval(power.exponent)
+	if err != nil {
+		return 0, err
+	}
+	return math.Pow(base, exponent), nil
 }
 
