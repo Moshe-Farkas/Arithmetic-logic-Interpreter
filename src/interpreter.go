@@ -85,10 +85,9 @@ func evalBinary(expression binaryExpr) (any, error) {
 	case "^":
 		right, err := eval(expression.rightExpr)
 		if checkNumOperands(left, right) {
-			return math.Pow(left.(float64), right.(float64)), nil
+			return math.Pow(left.(float64), right.(float64)), err
 		}
-		return nil, err
-	
+		return nil, fmt.Errorf("Runtime Error: cannot raise opperand of type `%T` to type `%T`", left, right)
 	}
 	return nil, errors.New("Runtime Error: Unsupported operator")
 }
