@@ -1,15 +1,14 @@
 package src
 
 import (
-	"fmt"
-	"os"
+	"errors"
 )
 
-func Interpret(expression expr) float64 {
+func Interpret(expression expr) (float64, error) {
 	return eval(expression)
 } 
 
-func eval(expresison expr) float64 {
+func eval(expresison expr) (float64, error) {
 	_, isBin := expresison.(binaryExpr)
 	if isBin {
 		return evalBinary(expresison.(binaryExpr))
@@ -26,50 +25,47 @@ func eval(expresison expr) float64 {
 	if isLiteral {
 		return evalLiteral(expresison.(literalExpr))
 	}
-	fmt.Println("Runtime error")
-	os.Exit(1)
-	return 0
+	return 0, errors.New("Runtime Error: Unreachable")
 }
 
-func evalBinary(expression binaryExpr) float64 {
-	left := eval(expression.leftExpr)
+func evalBinary(expression binaryExpr) (float64, error) {
+	left, err := eval(expression.leftExpr)
+	if err != nil {
+		return 0, err
+	}
 	switch expression.operator {
 	case "+":
-		right := eval(expression.rightExpr)
-		return left + right
+		right, err := eval(expression.rightExpr)
+		return left + right, err
 	
 	case "-":
-		right := eval(expression.rightExpr)
-		return left - right
+		right, err := eval(expression.rightExpr)
+		return left - right, err
 
 	case "*":
-		right := eval(expression.rightExpr)
-		return left * right
+		right, err := eval(expression.rightExpr)
+		return left * right, err
 
 	case "/":
-		right := eval(expression.rightExpr)
+		right, err := eval(expression.rightExpr)
 		if right == 0 {
-			fmt.Println("Division by zero error")
-			os.Exit(1)
-			return 0
+			return 0, errors.New("Runtime Error: Division by zero error")
 		}
-		return left / right
+		return left / right, err
 	}
-	fmt.Println("Runtime error")
-	os.Exit(1)
-	return 0
+	return 0, errors.New("Runtime Error: Unsupported operator")
 }
 
-func evalNegand(expression negandExpr) float64 {
-	rightExp := eval(expression.expression)
-	return -rightExp
+func evalNegand(expression negandExpr) (float64, error) {
+	rightExp, err := eval(expression.expression)
+	return -rightExp, err
 }
 
-func evalGroup(expression groupExpr) float64 {
+func evalGroup(expression groupExpr) (float64, error) {
 	return eval(expression.expression)
 }
 
-func evalLiteral(expression literalExpr) float64 {
-	return float64(expression)
+func evalLiteral(expression literalExpr) (float64, error) {
+	return float64(expression), nil
 }
 

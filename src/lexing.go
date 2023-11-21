@@ -16,7 +16,7 @@ type scanningSession struct {
 func compileErrMsg(unknownTokens []string) string {
 	var sb = strings.Builder {}
 	if len(unknownTokens) == 1 {
-		sb.WriteString(fmt.Sprintf("Error: Unknown token: \n\t`%s`\n", unknownTokens[0]))
+		sb.WriteString(fmt.Sprintf("Error: Unknown token: \n\t`%s`", unknownTokens[0]))
 	} else {
 		sb.WriteString("Error: Unknown tokens: \n")
 		for _, uexpTok := range unknownTokens {
@@ -55,12 +55,7 @@ func Tokenize(input string) ([]token, error) {
 			continue
 		} else {
 			unknownTokens = append(unknownTokens, c)
-			// errMsg := fmt.Sprintf("Error: Unknown token: %s\n", c)
-			// return nil, errors.New(errMsg)
 		}
-		// if err != nil {
-		// 	return nil, err
-		// }
 		ss.currentIndex++
 	}
 	if len(unknownTokens) > 0 {

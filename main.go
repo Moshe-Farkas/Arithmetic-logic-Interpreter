@@ -40,5 +40,10 @@ func runLine(line string) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(src.Interpret(st))
+	ans, err := src.Interpret(st)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(ans)
+	}
 }
