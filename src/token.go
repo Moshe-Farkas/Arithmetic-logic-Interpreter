@@ -10,6 +10,8 @@ const (
 	NUM_LITERAL
 	POWER
 	EQUAL_EQUAL
+	TRUE
+	FALSE
 )
 
 type token struct {

@@ -28,6 +28,10 @@ func eval(expresison expr) (any, error) {
 	if isLiteral {
 		return evalLiteral(expresison.(literalExpr))
 	}
+	_, isBoolean := expresison.(BooleanExpr)
+	if isBoolean {
+		return evalBoolean(expresison.(BooleanExpr))
+	}
 	_, isPower := expresison.(powerExpr)
 	if isPower {
 		return evalPower(expresison.(powerExpr))
@@ -93,7 +97,7 @@ func checkNumOperands(left, right expr) bool {
 
 func evalNegand(expression negandExpr) (any, error) {
 	rightExp, err := eval(expression.expression)
-	return -rightExp.(float64), err
+	return -(rightExp.(float64)), err
 }
 
 func evalGroup(expression groupExpr) (any, error) {
@@ -102,6 +106,10 @@ func evalGroup(expression groupExpr) (any, error) {
 
 func evalLiteral(expression literalExpr) (any, error) {
 	return float64(expression), nil
+}
+
+func evalBoolean(expression BooleanExpr) (any, error) {
+	return bool(expression), nil
 }
 
 func evalPower(power powerExpr) (any, error) {

@@ -11,10 +11,10 @@ func Parse(tokens []token) (expr, error) {
 	return ast, err
 }
 
-type expr interface {}
+type expr interface{}
 
 type powerExpr struct {
-	base expr
+	base     expr
 	exponent expr
 }
 
@@ -27,9 +27,9 @@ func newNegand(expression expr) negandExpr {
 }
 
 type binaryExpr struct {
-	leftExpr expr
-	operator string
-	rightExpr expr	
+	leftExpr  expr
+	operator  string
+	rightExpr expr
 }
 
 func newbinaryExpr(leftExpr expr, op string, rightExpr expr) binaryExpr {
@@ -48,17 +48,18 @@ func newPowerExpr(base expr, exponent expr) powerExpr {
 	return powerExpr{base, exponent}
 }
 
-type literalExpr int
+type literalExpr float64
+type BooleanExpr bool
 
-// expression -> term 
+// expression -> term
 // term -> factor (("+" | "-") factor)*
 // factor -> negand (("/" | "*") negand)*
 // negand -> "-" negand | primary
 // primary -> "(" expression ")" | number
 
 type parser struct {
-	tokens []token
-	currentIndex int 
+	tokens       []token
+	currentIndex int
 }
 
 func (p *parser) atEnd() bool {
@@ -73,7 +74,7 @@ func (p *parser) advance() {
 	p.currentIndex++
 }
 
-func (p *parser) match(tokenIds ... int) bool {
+func (p *parser) match(tokenIds ...int) bool {
 	if p.atEnd() {
 		return false
 	}
@@ -188,9 +189,13 @@ func (p *parser) primary() (expr, error) {
 		p.advance()
 		return newgroupExpr(expression), nil
 	} else if p.match(NUM_LITERAL) {
-		val := p.current().Value.(int)
+		val := p.current().Value.(float64)
 		p.advance()
 		return literalExpr(val), nil
+	} else if p.match(TRUE, FALSE) {
+		val := p.current().Value.(bool)
+		p.advance()
+		return BooleanExpr(val), nil
 	}
 	if p.atEnd() {
 		return nil, errors.New("Parse Error: Expected number literal")

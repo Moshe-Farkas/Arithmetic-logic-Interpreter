@@ -2,19 +2,19 @@ package src
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
-	"fmt"
 )
 
 type scanningSession struct {
-	currentIndex int 
-	tokens []token
-	input string
+	currentIndex int
+	tokens       []token
+	input        string
 }
 
 func compileErrMsg(unknownTokens []string) string {
-	var sb = strings.Builder {}
+	var sb = strings.Builder{}
 	if len(unknownTokens) == 1 {
 		sb.WriteString(fmt.Sprintf("Error: Unknown token: \n\t`%s`", unknownTokens[0]))
 	} else {
@@ -27,44 +27,57 @@ func compileErrMsg(unknownTokens []string) string {
 }
 
 func Tokenize(input string) ([]token, error) {
-	ss := scanningSession {0, []token{}, input}
-	var unknownTokens = []string {}
+	ss := scanningSession{0, []token{}, input}
+	var unknownTokens = []string{}
 	for !ss.atEnd() {
-		c := ss.current()
-		var err error
-		if c == "+" {
+		currToken := ss.current()
+		err := false
+		if currToken == "+" {
 			ss.addToken(PLUS, "+", nil)
-		} else if c == "-" {
+		} else if currToken == "-" {
 			ss.addToken(MINUS, "-", nil)
-		} else if c == "/" {
+		} else if currToken == "/" {
 			ss.addToken(SLASH, "/", nil)
-		} else if c == "*" {
+		} else if currToken == "*" {
 			ss.addToken(STAR, "*", nil)
-		} else if c == "(" {
+		} else if currToken == "(" {
 			ss.addToken(LEFT_PAREN, "(", nil)
-		} else if c == ")" {
+		} else if currToken == ")" {
 			ss.addToken(RIGHT_PAREN, ")", nil)
-		} else if c == "^" {
+		} else if currToken == "^" {
 			ss.addToken(POWER, "^", nil)
-		} else if c == "=" {
+		} else if currToken == "=" {
 			ss.currentIndex++
 			if ss.atEnd() || ss.current() != "=" {
-				unknownTokens = append(unknownTokens, c)
+				err = true
 			} else {
 				ss.addToken(EQUAL_EQUAL, "==", nil)
 			}
-		} else if isDigit(c) {
-			err = ss.consumeDigit()
-			if err != nil {
-				unknownTokens = append(unknownTokens, string(err.Error()))
+		} else if isAlpha(currToken) {
+			iden := ss.Boolean()
+			if iden == "true" {
+				ss.addToken(TRUE, "true", true)
+				continue
+			} else if iden == "false" {
+				ss.addToken(FALSE, "false", false)
+				continue
 			}
+			err = true
+			currToken = iden
+		} else if isDigit(currToken) {
+			ss.consumeDigit()
 			continue
-		} else if c == " " { 
+		} else if currToken == " " {
 			ss.consumeWhiteSpace()
 			continue
 		} else {
-			unknownTokens = append(unknownTokens, c)
+			err = true
 		}
+
+		if err {
+			unknownTokens = append(unknownTokens, currToken)
+		}
+
 		ss.currentIndex++
 	}
 	if len(unknownTokens) > 0 {
@@ -85,7 +98,7 @@ func (ss *scanningSession) consumeWhiteSpace() {
 	}
 }
 
-func (ss *scanningSession) consumeDigit() error {
+func (ss *scanningSession) consumeDigit() {
 	var lexeme = ss.current()
 	ss.currentIndex++
 	for !ss.atEnd() {
@@ -95,17 +108,18 @@ func (ss *scanningSession) consumeDigit() error {
 		}
 		lexeme += c
 		ss.currentIndex++
-	}	
-	number, err := strconv.Atoi(string(lexeme))
-	if err != nil {
-		return errors.New("Error: could not convert number")
 	}
-	ss.addToken(NUM_LITERAL, string(lexeme), number)
-	return nil
+	number, _ := strconv.Atoi(string(lexeme))
+	ss.addToken(NUM_LITERAL, string(lexeme), float64(number))
 }
 
 func isDigit(c string) bool {
 	return c >= string('0') && c <= string('9')
+}
+
+func isAlpha(c string) bool {
+	t := c[0]
+	return t >= 'a' && t <= 'z'
 }
 
 func (ss *scanningSession) addToken(tokenId int, lexeme string, val any) {
@@ -118,4 +132,18 @@ func (ss *scanningSession) current() string {
 
 func (ss *scanningSession) atEnd() bool {
 	return ss.currentIndex >= len(ss.input)
+}
+
+func (ss *scanningSession) Boolean() string {
+	var lexeme = ss.current()
+	ss.currentIndex++
+	for !ss.atEnd() {
+		c := ss.current()
+		if !isAlpha(c) {
+			break
+		}
+		lexeme += c
+		ss.currentIndex++
+	}
+	return lexeme
 }
