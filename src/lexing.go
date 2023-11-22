@@ -46,6 +46,20 @@ func Tokenize(input string) ([]token, error) {
 			ss.addToken(RIGHT_PAREN, ")", nil)
 		} else if currToken == "^" {
 			ss.addToken(POWER, "^", nil)
+		} else if currToken == ">" {
+			if ss.peekNext() == "=" {
+				ss.currentIndex++
+				ss.addToken(GREATER_EQUAL, ">=", nil)
+			} else {
+				ss.addToken(GREATER, ">", nil)
+			}
+		} else if currToken == "<" {
+			if ss.peekNext() == "=" {
+				ss.currentIndex++
+				ss.addToken(LESS_EQUAL, "<=", nil)
+			} else {
+				ss.addToken(LESS, "<", nil)
+			}
 		} else if currToken == "=" {
 			ss.currentIndex++
 			if ss.atEnd() || ss.current() != "=" {
@@ -146,4 +160,14 @@ func (ss *scanningSession) Boolean() string {
 		ss.currentIndex++
 	}
 	return lexeme
+}
+
+func (ss *scanningSession) peekNext() string {
+	ss.currentIndex++
+	if ss.atEnd() {
+		return "" 
+	}
+	t := ss.current()
+	ss.currentIndex--
+	return t
 }

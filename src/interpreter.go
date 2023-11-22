@@ -88,6 +88,29 @@ func evalBinary(expression binaryExpr) (any, error) {
 			return math.Pow(left.(float64), right.(float64)), err
 		}
 		return nil, fmt.Errorf("Runtime Error: cannot raise opperand of type `%T` to type `%T`", left, right)
+	
+	case ">", "<", ">=", "<=":
+		right, err := eval(expression.rightExpr)
+		if err != nil {
+			return false, err
+		}
+		if !checkNumOperands(left, right) {
+			return false, fmt.Errorf("Runtime Error: cannot compare opperand of type `%T` to type `%T`", left, right)
+		}
+		return comp(left.(float64), right.(float64), expression.operator)
+
+	// case ">":
+	// 	right, err := eval(expression.rightExpr)
+	// 	if checkNumOperands(left, right) {
+	// 		return left.(float64) > right.(float64), err
+	// 	} 
+	// 	return nil, fmt.Errorf("Runtime Error: cannot compare opperand of type `%T` to type `%T`", left, right)
+	// case "<":
+	// 	right, err := eval(expression.rightExpr)
+	// 	if checkNumOperands(left, right) {
+	// 		return left.(float64) < right.(float64), err
+	// 	} 
+	// 	return nil, fmt.Errorf("Runtime Error: cannot compare opperand of type `%T` to type `%T`", left, right)
 	}
 	return nil, errors.New("Runtime Error: Unsupported operator")
 }
@@ -114,21 +137,23 @@ func evalBoolean(expression BooleanExpr) (any, error) {
 	return bool(expression), nil
 }
 
-// func evalPower(power powerExpr) (any, error) {
-// 	base, err := eval(power.base)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	exponent, err := eval(power.exponent)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	return math.Pow(base.(float64), exponent.(float64)), nil
-// }
-
 func equal(left, right expr) (bool, error) {
 	if reflect.TypeOf(left) != reflect.TypeOf(right) {
 		return false, fmt.Errorf("Runtime Error: cannot compare opperand of type `%T` to type `%T`", left, right)
 	}
 	return reflect.DeepEqual(left, right), nil
+}
+
+func comp(left, right float64, operator string) (bool, error) {
+	switch operator {
+	case ">":
+		return left > right, nil
+	case "<":
+		return left < right, nil
+	case ">=":
+		return left >= right, nil
+	case "<=":
+		return left <= right, nil
+	}
+	return false, errors.New("Runtime Error: Unknown comparison operator")
 }

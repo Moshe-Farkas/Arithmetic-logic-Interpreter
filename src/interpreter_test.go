@@ -100,3 +100,23 @@ func TestBoolLiteral(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestComparision(t *testing.T) {
+	want := false
+	got := ans("6 > 23")
+	if want != got {
+		t.Fail()
+	}
+
+	want = true
+	got = ans("5 >= 5")
+	if want != got {
+		t.Fail()
+	}
+
+	want = true
+	got = ans("6 <= 6")
+	if want != got {
+		t.Fail()
+	}
+}

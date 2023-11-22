@@ -73,22 +73,39 @@ func (p *parser) match(tokenIds ...int) bool {
 
 func (p *parser) expression() (expr, error) {
 	return p.equality()
-	// return p.term()
 }
 
 func (p *parser) equality() (expr, error) {
-	left, err := p.term()
+	left, err := p.comparison()
 	if err != nil {
 		return nil, err
 	}
 
 	for p.match(EQUAL_EQUAL) {
 		p.advance()
-		right, err := p.equality()
+		// right, err := p.equality()
+		right, err := p.comparison()
 		if err != nil {
 			return nil, err
 		}
 		left = newbinaryExpr(left, "==", right)
+	}
+	return left, nil
+}
+
+func (p *parser) comparison() (expr, error) {
+	left, err := p.term()
+	if err != nil {
+		return nil, err
+	}
+	for p.match(GREATER, LESS, GREATER_EQUAL, LESS_EQUAL) {
+		operator := p.current().Lexeme
+		p.advance()
+		right, err := p.term()
+		if err != nil {
+			return nil, err
+		}
+		left = newbinaryExpr(left, operator, right)	
 	}
 	return left, nil
 }

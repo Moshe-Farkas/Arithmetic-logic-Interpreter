@@ -12,6 +12,10 @@ const (
 	EQUAL_EQUAL
 	TRUE
 	FALSE
+	GREATER
+	LESS
+	GREATER_EQUAL
+	LESS_EQUAL
 )
 
 type token struct {
