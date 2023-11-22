@@ -1,1 +1,2 @@
-## REPL for arithmetic and logic expressions written in golang.
+## REPL for arithmetic and logic expressions 
+![showcase image](showcase.png)
